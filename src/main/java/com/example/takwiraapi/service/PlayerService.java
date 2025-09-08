@@ -2,19 +2,17 @@ package com.example.takwiraapi.service;
 
 import com.example.takwiraapi.entity.Player;
 import com.example.takwiraapi.repository.PlayerRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PlayerService {
 
     private final PlayerRepository repository;
-
-    public PlayerService(PlayerRepository repository) {
-        this.repository = repository;
-    }
 
     public List<Player> getAllPlayers() {
         return repository.findAll();
@@ -25,6 +23,10 @@ public class PlayerService {
     }
 
     public Player createPlayer(Player player) {
+        if (player.getPlayerId() != null && repository.existsById(player.getPlayerId())) {
+            throw new IllegalArgumentException("Player with ID " + player.getPlayerId() + " already exists.");
+        }
+        player.setPlayerId(null);
         return repository.save(player);
     }
 

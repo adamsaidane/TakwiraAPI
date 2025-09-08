@@ -2,6 +2,7 @@ package com.example.takwiraapi.controller;
 
 import com.example.takwiraapi.entity.Player;
 import com.example.takwiraapi.service.PlayerService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,13 +10,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/players")
+@RequiredArgsConstructor
 public class PlayerController {
 
     private final PlayerService service;
-
-    public PlayerController(PlayerService service) {
-        this.service = service;
-    }
 
     // GET all players
     @GetMapping
