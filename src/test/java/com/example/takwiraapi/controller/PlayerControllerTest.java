@@ -103,7 +103,7 @@ class PlayerControllerTest {
 
         mockMvc.perform(delete("/api/players/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         verify(playerService, times(1)).deletePlayer(1L);
     }

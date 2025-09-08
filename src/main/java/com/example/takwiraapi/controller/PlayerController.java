@@ -22,9 +22,9 @@ public class PlayerController {
     }
 
     // GET player by id
-    @GetMapping("/{id}")
-    public ResponseEntity<Player> getPlayerById(@PathVariable Long id) {
-        return service.getPlayerById(id)
+    @GetMapping("/{playerId}")
+    public ResponseEntity<Player> getPlayerById(@PathVariable Long playerId) {
+        return service.getPlayerById(playerId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -36,20 +36,15 @@ public class PlayerController {
     }
 
     // UPDATE player
-    @PutMapping("/{id}")
-    public ResponseEntity<Player> updatePlayer(@PathVariable Long id, @RequestBody Player player) {
-        try {
-            Player updated = service.updatePlayer(id, player);
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    @PutMapping("/{playerId}")
+    public Player updatePlayer(@PathVariable Long playerId, @RequestBody Player player) {
+        return service.updatePlayer(playerId, player);
     }
 
     // DELETE player
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePlayer(@PathVariable Long id) {
-        service.deletePlayer(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{playerId}")
+    public ResponseEntity<String> deletePlayer(@PathVariable Long playerId) {
+        service.deletePlayer(playerId);
+        return ResponseEntity.ok("Player with ID " + playerId + " deleted successfully");
     }
 }
