@@ -1,5 +1,6 @@
 package com.example.takwiraapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "players")
-public class Player {
+@JsonPropertyOrder({"playerId", "playerName", "deleted", "createdAt", "updatedAt", "deletedAt"})
+public class Player extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
