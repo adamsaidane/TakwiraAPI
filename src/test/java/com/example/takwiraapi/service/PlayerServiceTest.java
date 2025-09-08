@@ -33,7 +33,7 @@ class PlayerServiceTest {
         Player player = new Player();
         player.setPlayerId(1L);
         player.setPlayerName("Name");
-        when(playerRepository.findAll()).thenReturn(List.of(player));
+        when(playerRepository.findAllActivePlayers()).thenReturn(List.of(player));
 
         List<Player> players = playerService.getAllPlayers();
         assertThat(players).hasSize(1);
@@ -47,30 +47,26 @@ class PlayerServiceTest {
         player.setPlayerName("Name");
 
         // Mock du existsById + findById
-        when(playerRepository.existsById(1L)).thenReturn(true);
-        when(playerRepository.findById(1L)).thenReturn(Optional.of(player));
+        when(playerRepository.findActivePlayerById(1L)).thenReturn(Optional.of(player));
 
         Optional<Player> found = playerService.getPlayerById(1L);
 
         assertThat(found).isPresent();
         assertThat(found.get().getPlayerName()).isEqualTo("Name");
 
-        verify(playerRepository).existsById(1L);
-        verify(playerRepository).findById(1L);
+        verify(playerRepository).findActivePlayerById(1L);
+
     }
 
     @Test
     void testGetPlayerById_NotFound() {
-        Long playerId = 1L;
+        when(playerRepository.findActivePlayerById(1L)).thenReturn(Optional.empty());
 
-        when(playerRepository.existsById(playerId)).thenReturn(false);
-
-        assertThatThrownBy(() -> playerService.getPlayerById(playerId))
+        assertThatThrownBy(() -> playerService.getPlayerById(1L))
                 .isInstanceOf(FunctionArgumentException.class)
                 .hasMessage(ErrorConstants.PLAYER_NOT_FOUND);
 
-        verify(playerRepository).existsById(playerId);
-        verify(playerRepository, never()).findById(anyLong());
+        verify(playerRepository).findActivePlayerById(1L);
     }
 
     @Test
@@ -90,13 +86,13 @@ class PlayerServiceTest {
         Player player = new Player();
         player.setPlayerName("Name");
 
-        when(playerRepository.existsByPlayerName("Name")).thenReturn(true);
+        when(playerRepository.existsByPlayerNameAndDeletedIsFalse("Name")).thenReturn(true);
 
         assertThatThrownBy(() -> playerService.createPlayer(player))
                 .isInstanceOf(FunctionArgumentException.class)
                 .hasMessage(ErrorConstants.PLAYER_NAME_ALREADY_EXISTS);
 
-        verify(playerRepository).existsByPlayerName("Name");
+        verify(playerRepository).existsByPlayerNameAndDeletedIsFalse("Name");
         verify(playerRepository, never()).save(any(Player.class));
     }
 
@@ -111,13 +107,13 @@ class PlayerServiceTest {
         Player updatedInfo = new Player();
         updatedInfo.setPlayerName("New Name");
 
-        when(playerRepository.findById(playerId)).thenReturn(Optional.of(existingPlayer));
+        when(playerRepository.findActivePlayerById(playerId)).thenReturn(Optional.of(existingPlayer));
         when(playerRepository.save(existingPlayer)).thenReturn(existingPlayer);
 
         Player updatedPlayer = playerService.updatePlayer(playerId, updatedInfo);
 
         assertThat(updatedPlayer.getPlayerName()).isEqualTo("New Name");
-        verify(playerRepository, times(1)).findById(playerId);
+        verify(playerRepository, times(1)).findActivePlayerById(playerId);
         verify(playerRepository, times(1)).save(existingPlayer);
     }
 
@@ -127,14 +123,14 @@ class PlayerServiceTest {
         Player updated = new Player();
         updated.setPlayerName("Name");
 
-        when(playerRepository.existsByPlayerName("Name")).thenReturn(false);
-        when(playerRepository.findById(playerId)).thenReturn(Optional.empty());
+        when(playerRepository.existsByPlayerNameAndDeletedIsFalse("Name")).thenReturn(false);
+        when(playerRepository.findActivePlayerById(playerId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> playerService.updatePlayer(playerId, updated))
                 .isInstanceOf(FunctionArgumentException.class)
                 .hasMessage(ErrorConstants.PLAYER_NOT_FOUND);
 
-        verify(playerRepository).findById(playerId);
+        verify(playerRepository).findActivePlayerById(playerId);
         verify(playerRepository, never()).save(any(Player.class));
     }
 
@@ -144,14 +140,14 @@ class PlayerServiceTest {
         Player updated = new Player();
         updated.setPlayerName("Name");
 
-        when(playerRepository.existsByPlayerName("Name")).thenReturn(true);
+        when(playerRepository.existsByPlayerNameAndDeletedIsFalse("Name")).thenReturn(true);
 
         assertThatThrownBy(() -> playerService.updatePlayer(playerId, updated))
                 .isInstanceOf(FunctionArgumentException.class)
                 .hasMessage(ErrorConstants.PLAYER_NAME_ALREADY_EXISTS);
 
-        verify(playerRepository).existsByPlayerName("Name");
-        verify(playerRepository, never()).findById(anyLong());
+        verify(playerRepository).existsByPlayerNameAndDeletedIsFalse("Name");
+        verify(playerRepository, never()).findActivePlayerById(anyLong());
         verify(playerRepository, never()).save(any(Player.class));
     }
 
@@ -159,25 +155,32 @@ class PlayerServiceTest {
     void testDeletePlayer() {
         Long playerId = 1L;
 
-        when(playerRepository.existsById(playerId)).thenReturn(true);
+        Player player = new Player();
+        player.setPlayerId(playerId);
+        player.setPlayerName("Name");
+        player.setDeleted(false);
+
+        when(playerRepository.findActivePlayerById(playerId)).thenReturn(Optional.of(player));
+        when(playerRepository.save(any(Player.class))).thenReturn(player);
 
         playerService.deletePlayer(playerId);
 
-        verify(playerRepository).existsById(playerId);
-        verify(playerRepository).deleteById(playerId);
+        assertThat(player.isDeleted()).isTrue();
+        verify(playerRepository).findActivePlayerById(playerId);
+        verify(playerRepository).save(player);
     }
 
     @Test
     void testDeletePlayer_NotFound() {
         Long playerId = 1L;
 
-        when(playerRepository.existsById(playerId)).thenReturn(false);
+        when(playerRepository.findActivePlayerById(playerId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> playerService.deletePlayer(playerId))
                 .isInstanceOf(FunctionArgumentException.class)
                 .hasMessage(ErrorConstants.PLAYER_NOT_FOUND);
 
-        verify(playerRepository).existsById(playerId);
-        verify(playerRepository, never()).deleteById(anyLong());
+        verify(playerRepository).findActivePlayerById(playerId);
+        verify(playerRepository, never()).save(any(Player.class));
     }
 }
