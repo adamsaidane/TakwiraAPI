@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/players")
@@ -17,28 +18,26 @@ public class PlayerController {
 
     // GET all players
     @GetMapping
-    public List<Player> getAllPlayers() {
-        return service.getAllPlayers();
+    public ResponseEntity<List<Player>> getAllPlayers() {
+        return ResponseEntity.ok(service.getAllPlayers());
     }
 
     // GET player by id
     @GetMapping("/{playerId}")
-    public ResponseEntity<Player> getPlayerById(@PathVariable Long playerId) {
-        return service.getPlayerById(playerId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Optional<Player>> getPlayerById(@PathVariable Long playerId) {
+        return ResponseEntity.ok(service.getPlayerById(playerId));
     }
 
     // CREATE new player
     @PostMapping
-    public Player createPlayer(@RequestBody Player player) {
-        return service.createPlayer(player);
+    public ResponseEntity<Player> createPlayer(@RequestBody Player player) {
+        return ResponseEntity.ok(service.createPlayer(player));
     }
 
     // UPDATE player
     @PutMapping("/{playerId}")
-    public Player updatePlayer(@PathVariable Long playerId, @RequestBody Player player) {
-        return service.updatePlayer(playerId, player);
+    public ResponseEntity<Player> updatePlayer(@PathVariable Long playerId, @RequestBody Player player) {
+        return ResponseEntity.ok(service.updatePlayer(playerId, player));
     }
 
     // DELETE player

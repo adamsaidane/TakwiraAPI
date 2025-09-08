@@ -14,43 +14,45 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PlayerService {
 
-    private final PlayerRepository repository;
+    private final PlayerRepository playerRepository;
 
     public List<Player> getAllPlayers() {
-        return repository.findAll();
+        return playerRepository.findAllActivePlayers();
     }
 
     public Optional<Player> getPlayerById(Long playerId) {
-        if (!repository.existsById(playerId)) {
-            throw new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND);
-        }
-        return repository.findById(playerId);
+        return Optional.ofNullable(playerRepository.findActivePlayerById(playerId)
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND)));
     }
 
     public Player createPlayer(Player player) throws FunctionArgumentException {
-        if (repository.existsByPlayerName(player.getPlayerName())) {
+        if (playerRepository.existsByPlayerNameAndDeletedIsFalse(player.getPlayerName())) {
             throw new FunctionArgumentException(ErrorConstants.PLAYER_NAME_ALREADY_EXISTS);
         }
         player.setPlayerId(null);
-        return repository.save(player);
+        player.setDeleted(false);
+        player.setDeletedAt(null);
+        return playerRepository.save(player);
     }
 
     public Player updatePlayer(Long playerId, Player updatedPlayer) {
-        if (repository.existsByPlayerName(updatedPlayer.getPlayerName())) {
+        if (playerRepository.existsByPlayerNameAndDeletedIsFalse(updatedPlayer.getPlayerName())) {
             throw new FunctionArgumentException(ErrorConstants.PLAYER_NAME_ALREADY_EXISTS);
         }
-        return repository.findById(playerId)
-                .map(player -> {
-                    player.setPlayerName(updatedPlayer.getPlayerName());
-                    return repository.save(player);
-                })
+        Player player = playerRepository.findActivePlayerById(playerId)
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND));
+
+        player.setPlayerName(updatedPlayer.getPlayerName());
+        player.setDeleted(false);
+        player.setDeletedAt(null);
+        return playerRepository.save(player);
     }
 
     public void deletePlayer(Long playerId) {
-        if (!repository.existsById(playerId)) {
-            throw new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND);
-        }
-        repository.deleteById(playerId);
+        Player player = playerRepository.findActivePlayerById(playerId)
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND));
+
+        player.markDeleted();
+        playerRepository.save(player);
     }
 }
