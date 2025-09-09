@@ -1,38 +1,45 @@
 package com.example.takwiraapi.service;
 
 import com.example.takwiraapi.constants.ErrorConstants;
+import com.example.takwiraapi.dto.MatchDto;
 import com.example.takwiraapi.entity.Match;
+import com.example.takwiraapi.mapper.Mapper;
 import com.example.takwiraapi.repository.MatchRepository;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.query.sqm.produce.function.FunctionArgumentException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MatchService {
 
     private final MatchRepository matchRepository;
+    private final Mapper mapper; // ton Mapper pour Match <-> MatchDto
 
-    public List<Match> getAllMatches() {
-        return matchRepository.findAllActiveMatches();
+    public List<MatchDto> getAllMatches() {
+        return matchRepository.findAllActiveMatches()
+                .stream()
+                .map(mapper::matchToDto)
+                .toList();
     }
 
-    public Optional<Match> getMatchById(Long matchId) {
-        return Optional.ofNullable(matchRepository.findActiveMatchesByMatchId(matchId)
-                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND)));
+    public MatchDto getMatchById(Long matchId) {
+        Match match = matchRepository.findActiveMatchesByMatchId(matchId)
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
+        return mapper.matchToDto(match);
     }
 
-    public Match createMatch(Match match) throws FunctionArgumentException {
+    public MatchDto createMatch(Match match) {
         match.setMatchId(null);
         match.setDeleted(false);
         match.setDeletedAt(null);
-        return matchRepository.save(match);
+        Match savedMatch = matchRepository.save(match);
+        return mapper.matchToDto(savedMatch);
     }
 
-    public Match updateMatch(Long matchId, Match updatedMatch) {
+    public MatchDto updateMatch(Long matchId, Match updatedMatch) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
 
@@ -41,7 +48,9 @@ public class MatchService {
         match.setTeam2Players(updatedMatch.getTeam2Players());
         match.setDeleted(false);
         match.setDeletedAt(null);
-        return matchRepository.save(match);
+
+        Match savedMatch = matchRepository.save(match);
+        return mapper.matchToDto(savedMatch);
     }
 
     public void deleteMatch(Long matchId) {

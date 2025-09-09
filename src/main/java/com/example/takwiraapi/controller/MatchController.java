@@ -1,5 +1,6 @@
 package com.example.takwiraapi.controller;
 
+import com.example.takwiraapi.dto.MatchDto;
 import com.example.takwiraapi.entity.Match;
 import com.example.takwiraapi.service.MatchService;
 import lombok.RequiredArgsConstructor;
@@ -18,25 +19,25 @@ public class MatchController {
 
     // GET all matches
     @GetMapping
-    public ResponseEntity<List<Match>> getAllMatches() {
+    public ResponseEntity<List<MatchDto>> getAllMatches() {
         return ResponseEntity.ok(matchService.getAllMatches());
     }
 
     // GET match by id
     @GetMapping("/{matchId}")
-    public ResponseEntity<Optional<Match>> getMatchById(@PathVariable Long matchId) {
-        return ResponseEntity.ok(matchService.getMatchById(matchId));
+    public ResponseEntity<Optional<MatchDto>> getMatchById(@PathVariable Long matchId) {
+        return ResponseEntity.ok(Optional.ofNullable(matchService.getMatchById(matchId)));
     }
 
     // CREATE new match
     @PostMapping
-    public ResponseEntity<Match> createMatch(@RequestBody Match match) {
+    public ResponseEntity<MatchDto> createMatch(@RequestBody Match match) {
         return ResponseEntity.ok(matchService.createMatch(match));
     }
 
     // UPDATE match
     @PutMapping("/{matchId}")
-    public ResponseEntity<Match> updateMatch(@PathVariable Long matchId, @RequestBody Match match) {
+    public ResponseEntity<MatchDto> updateMatch(@PathVariable Long matchId, @RequestBody Match match) {
         return ResponseEntity.ok(matchService.updateMatch(matchId, match));
     }
 
