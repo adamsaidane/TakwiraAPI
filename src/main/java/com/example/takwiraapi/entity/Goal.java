@@ -1,5 +1,6 @@
 package com.example.takwiraapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,5 +35,6 @@ public class Goal extends BaseEntity {
     // Match associé
     @ManyToOne(optional = false)
     @JoinColumn(name = "match_id", nullable = false)
+    @JsonIgnore
     private Match match;
 }
