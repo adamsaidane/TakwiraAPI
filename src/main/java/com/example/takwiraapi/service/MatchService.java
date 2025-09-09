@@ -87,6 +87,24 @@ public class MatchService {
                             .orElseThrow(() -> new FunctionArgumentException("Player not found"));
                     Player assist = playerRepository.findById(goalDto.getGoalAssist().getPlayerId())
                             .orElseThrow(() -> new FunctionArgumentException("Player not found"));
+
+                    boolean scorerInMatch = match.getMatchPlayers().stream()
+                            .anyMatch(pm -> pm.getPlayer().getPlayerId().equals(scorer.getPlayerId())
+                                    && pm.getTeam().equals(goalDto.getTeam()));
+
+                    if (!scorerInMatch) {
+                        throw new FunctionArgumentException(ErrorConstants.SCORER_NOT_FOUND_IN_MATCH);
+                    }
+
+                    if (assist != null) {
+                        boolean assistInMatch = match.getMatchPlayers().stream()
+                                .anyMatch(pm -> pm.getPlayer().getPlayerId().equals(assist.getPlayerId())
+                                        && pm.getTeam().equals(goalDto.getTeam()));
+                        if (!assistInMatch) {
+                            throw new FunctionArgumentException(ErrorConstants.ASSIST_PLAYER_NOT_FOUND_IN_MATCH);
+                        }
+                    }
+
                     goal.setGoalScorer(scorer);
                     goal.setGoalAssist(assist);
                     goal.setMatch(match);
