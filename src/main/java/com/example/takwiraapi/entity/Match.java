@@ -1,5 +1,6 @@
 package com.example.takwiraapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -44,5 +45,6 @@ public class Match extends BaseEntity {
     private List<Player> team2Players = new ArrayList<>();
 
     @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Goal> matchGoals = new ArrayList<>();
 }
