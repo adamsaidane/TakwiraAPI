@@ -9,6 +9,7 @@ USE takwira;
 -- ============================================
 DROP TABLE IF EXISTS match_team1_players;
 DROP TABLE IF EXISTS match_team2_players;
+DROP TABLE IF EXISTS match_player;
 DROP TABLE IF EXISTS goals;
 DROP TABLE IF EXISTS matches;
 DROP TABLE IF EXISTS players;
