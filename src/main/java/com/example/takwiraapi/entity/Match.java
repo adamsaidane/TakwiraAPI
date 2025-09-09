@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,24 +24,8 @@ public class Match extends BaseEntity {
     @Column(name = "title", nullable = false, length = 150)
     private String matchName;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @ManyToMany
-    @JoinTable(
-            name = "match_team1_players",
-            joinColumns = @JoinColumn(name = "match_id"),
-            inverseJoinColumns = @JoinColumn(name = "player_id")
-    )
-    private List<Player> team1Players = new ArrayList<>();
-
-    @ManyToMany
-    @JoinTable(
-            name = "match_team2_players",
-            joinColumns = @JoinColumn(name = "match_id"),
-            inverseJoinColumns = @JoinColumn(name = "player_id")
-    )
-    private List<Player> team2Players = new ArrayList<>();
+    @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MatchPlayer> matchPlayers = new ArrayList<>();
 
     @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

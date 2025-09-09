@@ -5,9 +5,7 @@ import com.example.takwiraapi.dto.AddGoalsToMatchDto;
 import com.example.takwiraapi.dto.AddPlayersToMatchDto;
 import com.example.takwiraapi.dto.CreateMatchDto;
 import com.example.takwiraapi.dto.MatchDto;
-import com.example.takwiraapi.entity.Goal;
-import com.example.takwiraapi.entity.Match;
-import com.example.takwiraapi.entity.Player;
+import com.example.takwiraapi.entity.*;
 import com.example.takwiraapi.mapper.Mapper;
 import com.example.takwiraapi.repository.MatchRepository;
 import com.example.takwiraapi.repository.PlayerRepository;
@@ -58,8 +56,22 @@ public class MatchService {
         List<Player> team1 = playerRepository.findAllById(addPlayersToMatchDto.getTeam1PlayerIds());
         List<Player> team2 = playerRepository.findAllById(addPlayersToMatchDto.getTeam2PlayerIds());
 
-        match.setTeam1Players(team1);
-        match.setTeam2Players(team2);
+        team1.forEach(player -> {
+            MatchPlayer pm = new MatchPlayer();
+            pm.setMatch(match);
+            pm.setPlayer(player);
+            pm.setTeam(Team.TEAM_1);
+            match.getMatchPlayers().add(pm);
+        });
+
+        // Ajouter les joueurs de l'équipe 2
+        team2.forEach(player -> {
+            MatchPlayer pm = new MatchPlayer();
+            pm.setMatch(match);
+            pm.setPlayer(player);
+            pm.setTeam(Team.TEAM_2);
+            match.getMatchPlayers().add(pm);
+        });
 
         return mapper.matchToDto(matchRepository.save(match));
     }
@@ -94,8 +106,8 @@ public class MatchService {
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
 
         match.setMatchName(updatedMatch.getMatchName());
-        match.setTeam1Players(updatedMatch.getTeam1Players());
-        match.setTeam2Players(updatedMatch.getTeam2Players());
+//        match.setTeam1Players(updatedMatch.getTeam1Players());
+//        match.setTeam2Players(updatedMatch.getTeam2Players());
         match.setDeleted(false);
         match.setDeletedAt(null);
 

@@ -6,6 +6,7 @@ import com.example.takwiraapi.dto.PlayerDto;
 import com.example.takwiraapi.entity.Goal;
 import com.example.takwiraapi.entity.Match;
 import com.example.takwiraapi.entity.Player;
+import com.example.takwiraapi.entity.Team;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,12 +32,14 @@ public class Mapper {
         if (match == null) {
             return null;
         }
-        List<PlayerDto> team1 = match.getTeam1Players().stream()
-                .map(this::playerToDto)
+        List<PlayerDto> team1 = match.getMatchPlayers().stream()
+                .filter(pm -> pm.getTeam() == Team.TEAM_1)
+                .map(pm -> playerToDto(pm.getPlayer()))
                 .collect(Collectors.toList());
 
-        List<PlayerDto> team2 = match.getTeam2Players().stream()
-                .map(this::playerToDto)
+        List<PlayerDto> team2 = match.getMatchPlayers().stream()
+                .filter(pm -> pm.getTeam() == Team.TEAM_2)
+                .map(pm -> playerToDto(pm.getPlayer()))
                 .collect(Collectors.toList());
 
         List<GoalDto> goals = match.getMatchGoals().stream()
