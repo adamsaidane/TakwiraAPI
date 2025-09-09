@@ -1,5 +1,8 @@
 package com.example.takwiraapi.controller;
 
+import com.example.takwiraapi.dto.AddGoalsToMatchDto;
+import com.example.takwiraapi.dto.AddPlayersToMatchDto;
+import com.example.takwiraapi.dto.CreateMatchDto;
 import com.example.takwiraapi.dto.MatchDto;
 import com.example.takwiraapi.entity.Match;
 import com.example.takwiraapi.service.MatchService;
@@ -31,11 +34,21 @@ public class MatchController {
 
     // CREATE new match
     @PostMapping
-    public ResponseEntity<MatchDto> createMatch(@RequestBody Match match) {
-        return ResponseEntity.ok(matchService.createMatch(match));
+    public ResponseEntity<MatchDto> createMatch(@RequestBody CreateMatchDto createMatchDto) {
+        return ResponseEntity.ok(matchService.createMatch(createMatchDto));
     }
 
-    // UPDATE match
+    @PostMapping("/{matchId}/players")
+    public ResponseEntity<MatchDto> addPlayers(@PathVariable Long matchId, @RequestBody AddPlayersToMatchDto addPlayersToMatchDto) {
+        return ResponseEntity.ok(matchService.addPlayers(matchId, addPlayersToMatchDto));
+    }
+
+    @PostMapping("/{matchId}/goals")
+    public ResponseEntity<MatchDto> addGoals(@PathVariable Long matchId, @RequestBody AddGoalsToMatchDto addGoalsToMatchDto) {
+        return ResponseEntity.ok(matchService.addGoals(matchId, addGoalsToMatchDto));
+    }
+
+    // UPDATE match (à revoir)
     @PutMapping("/{matchId}")
     public ResponseEntity<MatchDto> updateMatch(@PathVariable Long matchId, @RequestBody Match match) {
         return ResponseEntity.ok(matchService.updateMatch(matchId, match));
