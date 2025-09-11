@@ -5,12 +5,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "match_player")
+@SQLRestriction("deleted = false")
 public class MatchPlayer extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

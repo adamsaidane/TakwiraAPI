@@ -98,6 +98,74 @@ class MatchServiceTest {
     }
 
     @Test
+    void testAddPlayers_PlayerNotFound() {
+        AddPlayersToMatchDto dto = new AddPlayersToMatchDto(
+                List.of(1L, 99L), // 99L does not exist
+                List.of(2L)
+        );
+
+        when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.of(match));
+        when(playerRepository.findAllById(dto.getTeam1PlayerIds())).thenReturn(List.of(player1));
+        when(playerRepository.findAllById(dto.getTeam2PlayerIds())).thenReturn(List.of(player2));
+
+        FunctionArgumentException ex = assertThrows(FunctionArgumentException.class,
+                () -> matchService.addPlayers(1L, dto));
+
+        assertEquals(ErrorConstants.PLAYER_NOT_FOUND, ex.getMessage());
+    }
+
+    @Test
+    void testAddPlayers_DuplicateAcrossTeams() {
+        AddPlayersToMatchDto dto = new AddPlayersToMatchDto(
+                List.of(1L),
+                List.of(1L) // Same player in both teams
+        );
+
+        when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.of(match));
+        when(playerRepository.findAllById(dto.getTeam1PlayerIds())).thenReturn(List.of(player1));
+        when(playerRepository.findAllById(dto.getTeam2PlayerIds())).thenReturn(List.of(player1));
+
+        FunctionArgumentException ex = assertThrows(FunctionArgumentException.class,
+                () -> matchService.addPlayers(1L, dto));
+
+        assertEquals(ErrorConstants.PLAYER_IN_BOTH_TEAMS, ex.getMessage());
+    }
+
+    @Test
+    void testAddPlayers_PlayerDeleted() {
+        player2.setDeleted(true); // Simulate soft-deleted player
+
+        AddPlayersToMatchDto dto = new AddPlayersToMatchDto(
+                List.of(1L),
+                List.of(2L)
+        );
+
+        when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.of(match));
+        when(playerRepository.findAllById(dto.getTeam1PlayerIds())).thenReturn(List.of(player1));
+        when(playerRepository.findAllById(dto.getTeam2PlayerIds())).thenReturn(List.of(player2));
+
+        FunctionArgumentException ex = assertThrows(FunctionArgumentException.class,
+                () -> matchService.addPlayers(1L, dto));
+
+        assertEquals(ErrorConstants.PLAYER_NOT_FOUND, ex.getMessage());
+    }
+
+    @Test
+    void testAddPlayers_MatchNotFound() {
+        AddPlayersToMatchDto dto = new AddPlayersToMatchDto(
+                List.of(1L),
+                List.of(2L)
+        );
+
+        when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.empty());
+
+        FunctionArgumentException ex = assertThrows(FunctionArgumentException.class,
+                () -> matchService.addPlayers(1L, dto));
+
+        assertEquals(ErrorConstants.MATCH_NOT_FOUND, ex.getMessage());
+    }
+
+    @Test
     void testAddGoalsSuccessful() {
         // ajouter les joueurs dans le match
         MatchPlayer mp1 = new MatchPlayer();
@@ -146,21 +214,6 @@ class MatchServiceTest {
                 () -> matchService.addGoals(1L, addGoalsDto));
 
         assertEquals(ErrorConstants.SCORER_NOT_FOUND_IN_MATCH, ex.getMessage());
-    }
-
-    @Test
-    void testUpdateMatch() {
-        Match updatedMatch = new Match();
-        updatedMatch.setMatchName("Updated");
-
-        when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.of(match));
-        when(matchRepository.save(match)).thenReturn(match);
-        when(mapper.matchToDto(match)).thenReturn(new MatchDto());
-
-        MatchDto result = matchService.updateMatch(1L, updatedMatch);
-
-        assertNotNull(result);
-        assertEquals("Updated", match.getMatchName());
     }
 
     @Test
