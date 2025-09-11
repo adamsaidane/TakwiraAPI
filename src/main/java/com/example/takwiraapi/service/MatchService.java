@@ -14,7 +14,11 @@ import org.hibernate.query.sqm.produce.function.FunctionArgumentException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +59,37 @@ public class MatchService {
 
         List<Player> team1 = playerRepository.findAllById(addPlayersToMatchDto.getTeam1PlayerIds());
         List<Player> team2 = playerRepository.findAllById(addPlayersToMatchDto.getTeam2PlayerIds());
+
+        //Check for inexistant players
+        Set<Long> foundIds = Stream.concat(team1.stream(), team2.stream())
+                .map(Player::getPlayerId)
+                .collect(Collectors.toSet());
+
+        Set<Long> requestedIds = new HashSet<>();
+        requestedIds.addAll(addPlayersToMatchDto.getTeam1PlayerIds());
+        requestedIds.addAll(addPlayersToMatchDto.getTeam2PlayerIds());
+
+        requestedIds.removeAll(foundIds);
+        if (!requestedIds.isEmpty()) {
+            throw new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND);
+        }
+
+        //Check for duplicates
+        Set<Long> team1Ids = team1.stream().map(Player::getPlayerId).collect(Collectors.toSet());
+        Set<Long> team2Ids = team2.stream().map(Player::getPlayerId).collect(Collectors.toSet());
+
+        Set<Long> intersection = new HashSet<>(team1Ids);
+        intersection.retainAll(team2Ids);
+        if (!intersection.isEmpty()) {
+            throw new FunctionArgumentException(ErrorConstants.PLAYER_IN_BOTH_TEAMS);
+        }
+
+        //Check for deleted players
+        Stream.concat(team1.stream(), team2.stream()).forEach(player -> {
+            if (player.isDeleted()) {
+                throw new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND);
+            }
+        });
 
         team1.forEach(player -> {
             MatchPlayer pm = new MatchPlayer();
