@@ -55,7 +55,7 @@ public class MatchService {
 
     public MatchDto addPlayers(Long matchId, AddPlayersToMatchDto addPlayersToMatchDto) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
-                .orElseThrow(() -> new FunctionArgumentException("Match not found"));
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
 
         List<Player> team1 = playerRepository.findAllById(addPlayersToMatchDto.getTeam1PlayerIds());
         List<Player> team2 = playerRepository.findAllById(addPlayersToMatchDto.getTeam2PlayerIds());
