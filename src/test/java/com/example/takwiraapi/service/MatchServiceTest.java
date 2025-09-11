@@ -149,21 +149,6 @@ class MatchServiceTest {
     }
 
     @Test
-    void testUpdateMatch() {
-        Match updatedMatch = new Match();
-        updatedMatch.setMatchName("Updated");
-
-        when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.of(match));
-        when(matchRepository.save(match)).thenReturn(match);
-        when(mapper.matchToDto(match)).thenReturn(new MatchDto());
-
-        MatchDto result = matchService.updateMatch(1L, updatedMatch);
-
-        assertNotNull(result);
-        assertEquals("Updated", match.getMatchName());
-    }
-
-    @Test
     void testDeleteMatch() {
         when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.of(match));
         matchService.deleteMatch(1L);

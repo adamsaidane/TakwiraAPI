@@ -117,22 +117,6 @@ public class MatchService {
         return mapper.matchToDto(matchRepository.save(match));
     }
 
-
-    //à revoir
-    public MatchDto updateMatch(Long matchId, Match updatedMatch) {
-        Match match = matchRepository.findActiveMatchesByMatchId(matchId)
-                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
-
-        match.setMatchName(updatedMatch.getMatchName());
-//        match.setTeam1Players(updatedMatch.getTeam1Players());
-//        match.setTeam2Players(updatedMatch.getTeam2Players());
-        match.setDeleted(false);
-        match.setDeletedAt(null);
-
-        Match savedMatch = matchRepository.save(match);
-        return mapper.matchToDto(savedMatch);
-    }
-
     public void deleteMatch(Long matchId) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
