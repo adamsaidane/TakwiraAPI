@@ -64,7 +64,6 @@ public class MatchService {
             match.getMatchPlayers().add(pm);
         });
 
-        // Ajouter les joueurs de l'équipe 2
         team2.forEach(player -> {
             MatchPlayer pm = new MatchPlayer();
             pm.setMatch(match);
@@ -122,6 +121,14 @@ public class MatchService {
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
 
         match.markDeleted();
+
+        if (match.getMatchGoals() != null) {
+            match.getMatchGoals().forEach(Goal::markDeleted);
+        }
+
+        if (match.getMatchPlayers() != null) {
+            match.getMatchPlayers().forEach(MatchPlayer::markDeleted);
+        }
         matchRepository.save(match);
     }
 }
