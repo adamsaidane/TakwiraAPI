@@ -4,7 +4,6 @@ import com.example.takwiraapi.dto.AddGoalsToMatchDto;
 import com.example.takwiraapi.dto.AddPlayersToMatchDto;
 import com.example.takwiraapi.dto.CreateMatchDto;
 import com.example.takwiraapi.dto.MatchDto;
-import com.example.takwiraapi.entity.Match;
 import com.example.takwiraapi.service.MatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -46,12 +45,6 @@ public class MatchController {
     @PostMapping("/{matchId}/goals")
     public ResponseEntity<MatchDto> addGoals(@PathVariable Long matchId, @RequestBody AddGoalsToMatchDto addGoalsToMatchDto) {
         return ResponseEntity.ok(matchService.addGoals(matchId, addGoalsToMatchDto));
-    }
-
-    // UPDATE match (à revoir)
-    @PutMapping("/{matchId}")
-    public ResponseEntity<MatchDto> updateMatch(@PathVariable Long matchId, @RequestBody Match match) {
-        return ResponseEntity.ok(matchService.updateMatch(matchId, match));
     }
 
     // DELETE match

@@ -1,7 +1,6 @@
 package com.example.takwiraapi.controller;
 
 import com.example.takwiraapi.dto.*;
-import com.example.takwiraapi.entity.Match;
 import com.example.takwiraapi.entity.Team;
 import com.example.takwiraapi.service.MatchService;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,23 +99,6 @@ class MatchControllerTest {
 
         assertEquals(1, response.getBody().getMatchGoals().size());
         verify(matchService, times(1)).addGoals(1L, addGoalsDto);
-    }
-
-    @Test
-    void testUpdateMatch() {
-        Match updatedMatch = new Match();
-        updatedMatch.setMatchName("Updated Match");
-
-        MatchDto updatedDto = new MatchDto();
-        updatedDto.setMatchId(1L);
-        updatedDto.setMatchName("Updated Match");
-
-        when(matchService.updateMatch(1L, updatedMatch)).thenReturn(updatedDto);
-
-        ResponseEntity<MatchDto> response = matchController.updateMatch(1L, updatedMatch);
-
-        assertEquals("Updated Match", response.getBody().getMatchName());
-        verify(matchService, times(1)).updateMatch(1L, updatedMatch);
     }
 
     @Test

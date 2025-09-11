@@ -5,12 +5,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "goals")
+@SQLRestriction("deleted = false")
 public class Goal extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
