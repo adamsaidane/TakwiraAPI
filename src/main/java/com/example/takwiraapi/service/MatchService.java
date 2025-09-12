@@ -112,15 +112,15 @@ public class MatchService {
 
     public MatchDto addGoals(Long matchId, AddGoalsToMatchDto addGoalsToMatchDto) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
-                .orElseThrow(() -> new FunctionArgumentException("Match not found"));
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
 
         List<Goal> goals = addGoalsToMatchDto.getGoals().stream()
                 .map(goalDto -> {
                     Goal goal = new Goal();
                     Player scorer = playerRepository.findById(goalDto.getGoalScorer().getPlayerId())
-                            .orElseThrow(() -> new FunctionArgumentException("Player not found"));
+                            .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND));
                     Player assist = playerRepository.findById(goalDto.getGoalAssist().getPlayerId())
-                            .orElseThrow(() -> new FunctionArgumentException("Player not found"));
+                            .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND));
 
                     if (scorer.getPlayerId().equals(assist.getPlayerId())) {
                         throw new FunctionArgumentException(ErrorConstants.SCORER_AND_ASSIST_PLAYER_ARE_THE_SAME);
