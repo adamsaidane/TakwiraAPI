@@ -208,7 +208,8 @@ class MatchServiceTest {
         addGoalsDto.setGoals(List.of(goalDto));
 
         when(matchRepository.findActiveMatchesByMatchId(1L)).thenReturn(Optional.of(match));
-        when(playerRepository.findById(anyLong())).thenReturn(Optional.of(player1));
+        when(playerRepository.findById(1L)).thenReturn(Optional.of(player1));
+        when(playerRepository.findById(2L)).thenReturn(Optional.of(player2));
 
         FunctionArgumentException ex = assertThrows(FunctionArgumentException.class,
                 () -> matchService.addGoals(1L, addGoalsDto));
