@@ -32,23 +32,23 @@ public class MatchController {
     }
 
     // CREATE new match
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<MatchDto> createMatch(@RequestBody CreateMatchDto createMatchDto) {
         return ResponseEntity.ok(matchService.createMatch(createMatchDto));
     }
 
-    @PostMapping("/{matchId}/players")
+    @PostMapping("/create/{matchId}/players")
     public ResponseEntity<MatchDto> addPlayers(@PathVariable Long matchId, @RequestBody AddPlayersToMatchDto addPlayersToMatchDto) {
         return ResponseEntity.ok(matchService.addPlayers(matchId, addPlayersToMatchDto));
     }
 
-    @PostMapping("/{matchId}/goals")
+    @PostMapping("/create/{matchId}/goals")
     public ResponseEntity<MatchDto> addGoals(@PathVariable Long matchId, @RequestBody AddGoalsToMatchDto addGoalsToMatchDto) {
         return ResponseEntity.ok(matchService.addGoals(matchId, addGoalsToMatchDto));
     }
 
     // DELETE match
-    @DeleteMapping("/{matchId}")
+    @DeleteMapping("delete/{matchId}")
     public ResponseEntity<String> deleteMatch(@PathVariable Long matchId) {
         matchService.deleteMatch(matchId);
         return ResponseEntity.ok("Match with ID " + matchId + " deleted successfully");
