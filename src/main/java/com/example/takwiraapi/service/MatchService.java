@@ -122,6 +122,10 @@ public class MatchService {
                     Player assist = playerRepository.findById(goalDto.getGoalAssist().getPlayerId())
                             .orElseThrow(() -> new FunctionArgumentException("Player not found"));
 
+                    if (scorer.getPlayerId().equals(assist.getPlayerId())) {
+                        throw new FunctionArgumentException(ErrorConstants.SCORER_AND_ASSIST_PLAYER_ARE_THE_SAME);
+                    }
+
                     boolean scorerInMatch = match.getMatchPlayers().stream()
                             .anyMatch(pm -> pm.getPlayer().getPlayerId().equals(scorer.getPlayerId())
                                     && pm.getTeam().equals(goalDto.getTeam()));
