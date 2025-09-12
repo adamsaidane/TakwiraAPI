@@ -29,19 +29,19 @@ public class PlayerController {
     }
 
     // CREATE new player
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Player> createPlayer(@RequestBody Player player) {
         return ResponseEntity.ok(service.createPlayer(player));
     }
 
     // UPDATE player
-    @PutMapping("/{playerId}")
+    @PutMapping("/create/{playerId}")
     public ResponseEntity<Player> updatePlayer(@PathVariable Long playerId, @RequestBody Player player) {
         return ResponseEntity.ok(service.updatePlayer(playerId, player));
     }
 
     // DELETE player
-    @DeleteMapping("/{playerId}")
+    @DeleteMapping("/delete/{playerId}")
     public ResponseEntity<String> deletePlayer(@PathVariable Long playerId) {
         service.deletePlayer(playerId);
         return ResponseEntity.ok("Player with ID " + playerId + " deleted successfully");
