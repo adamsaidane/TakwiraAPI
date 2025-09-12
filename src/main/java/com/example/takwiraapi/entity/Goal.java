@@ -1,15 +1,18 @@
 package com.example.takwiraapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "goals")
+@SQLRestriction("deleted = false")
 public class Goal extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,5 +37,6 @@ public class Goal extends BaseEntity {
     // Match associé
     @ManyToOne(optional = false)
     @JoinColumn(name = "match_id", nullable = false)
+    @JsonIgnore
     private Match match;
 }
