@@ -1,5 +1,6 @@
 package com.example.takwiraapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
@@ -14,15 +15,19 @@ import java.time.LocalDateTime;
 @Setter
 public abstract class BaseEntity {
 
+    @JsonIgnore
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @JsonIgnore
     @Column
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @JsonIgnore
     @Column
     private LocalDateTime deletedAt;
 
