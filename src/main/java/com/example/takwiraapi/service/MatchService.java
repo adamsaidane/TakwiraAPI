@@ -14,9 +14,7 @@ import org.hibernate.query.sqm.produce.function.FunctionArgumentException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -91,20 +89,34 @@ public class MatchService {
             }
         });
 
-        team1.forEach(player -> {
-            MatchPlayer pm = new MatchPlayer();
-            pm.setMatch(match);
-            pm.setPlayer(player);
-            pm.setTeam(Team.TEAM_1);
-            match.getMatchPlayers().add(pm);
+        // Updating players
+        List<MatchPlayer> existingPlayers = new ArrayList<>(match.getMatchPlayers());
+
+        // Removing players no longer in match
+        existingPlayers.forEach(mp -> {
+            Long playerId = mp.getPlayer().getPlayerId();
+            if (!team1Ids.contains(playerId) && !team2Ids.contains(playerId)) {
+                match.getMatchPlayers().remove(mp);
+            }
         });
 
-        team2.forEach(player -> {
-            MatchPlayer pm = new MatchPlayer();
-            pm.setMatch(match);
-            pm.setPlayer(player);
-            pm.setTeam(Team.TEAM_2);
-            match.getMatchPlayers().add(pm);
+        // Create or update teams
+        Stream.concat(team1.stream(), team2.stream()).forEach(player -> {
+            Optional<MatchPlayer> existing = match.getMatchPlayers().stream()
+                    .filter(mp -> mp.getPlayer().getPlayerId().equals(player.getPlayerId()))
+                    .findFirst();
+
+            if (existing.isPresent()) {
+                // Update player
+                existing.get().setTeam(team1.contains(player) ? Team.TEAM_1 : Team.TEAM_2);
+            } else {
+                // New player
+                MatchPlayer mp = new MatchPlayer();
+                mp.setMatch(match);
+                mp.setPlayer(player);
+                mp.setTeam(team2.contains(player) ? Team.TEAM_1 : Team.TEAM_2);
+                match.getMatchPlayers().add(mp);
+            }
         });
 
         return mapper.matchToDto(matchRepository.save(match));
@@ -119,11 +131,16 @@ public class MatchService {
                     Goal goal = new Goal();
                     Player scorer = playerRepository.findById(goalDto.getGoalScorer().getPlayerId())
                             .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND));
-                    Player assist = playerRepository.findById(goalDto.getGoalAssist().getPlayerId())
-                            .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND));
+                    Player assist;
+                    if (goalDto.getGoalAssist() != null) {
+                        assist = playerRepository.findById(goalDto.getGoalAssist().getPlayerId())
+                                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.PLAYER_NOT_FOUND));
 
-                    if (scorer.getPlayerId().equals(assist.getPlayerId())) {
-                        throw new FunctionArgumentException(ErrorConstants.SCORER_AND_ASSIST_PLAYER_ARE_THE_SAME);
+                        if (scorer.getPlayerId().equals(assist.getPlayerId())) {
+                            throw new FunctionArgumentException(ErrorConstants.SCORER_AND_ASSIST_PLAYER_ARE_THE_SAME);
+                        }
+                    } else {
+                        assist = null;
                     }
 
                     boolean scorerInMatch = match.getMatchPlayers().stream()
