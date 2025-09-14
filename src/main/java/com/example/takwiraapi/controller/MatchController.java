@@ -37,6 +37,11 @@ public class MatchController {
         return ResponseEntity.ok(matchService.createMatch(createMatchDto));
     }
 
+    @PostMapping("/create/{matchId}")
+    public ResponseEntity<MatchDto> updateMatch(@PathVariable Long matchId, @RequestBody CreateMatchDto createMatchDto) {
+        return ResponseEntity.ok(matchService.updateMatch(matchId, createMatchDto));
+    }
+
     @PostMapping("/create/{matchId}/players")
     public ResponseEntity<MatchDto> addPlayers(@PathVariable Long matchId, @RequestBody AddPlayersToMatchDto addPlayersToMatchDto) {
         return ResponseEntity.ok(matchService.addPlayers(matchId, addPlayersToMatchDto));
@@ -52,5 +57,10 @@ public class MatchController {
     public ResponseEntity<String> deleteMatch(@PathVariable Long matchId) {
         matchService.deleteMatch(matchId);
         return ResponseEntity.ok("Match with ID " + matchId + " deleted successfully");
+    }
+
+    @DeleteMapping("delete/{matchId}/goals/{goalId}")
+    public ResponseEntity<MatchDto> deleteGoal(@PathVariable Long matchId, @PathVariable Long goalId) {
+        return ResponseEntity.ok(matchService.deleteGoal(matchId, goalId));
     }
 }
