@@ -9,6 +9,7 @@ public class ErrorConstants {
     public static final String ASSIST_PLAYER_NOT_FOUND_IN_MATCH = "Assist.player.is.not.part.of.the.match.in.the.specified.team";
     public static final String PLAYER_IN_BOTH_TEAMS = "Player.in.both.teams";
     public static final String SCORER_AND_ASSIST_PLAYER_ARE_THE_SAME = "Scorer.and.assist.player.are.the.same";
+    public static final String GOAL_NOT_FOUND_IN_MATCH = "Goal.not.found.in.match";
 
     public static final String INTERNAL_SERVER_ERROR = "An unexpected error occurred";
 }

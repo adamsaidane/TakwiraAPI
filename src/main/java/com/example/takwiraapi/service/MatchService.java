@@ -187,4 +187,30 @@ public class MatchService {
         }
         matchRepository.save(match);
     }
+
+    public MatchDto updateMatch(Long matchId, CreateMatchDto createMatchDto) {
+        Match match = matchRepository.findActiveMatchesByMatchId(matchId)
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
+
+        match.setMatchName(createMatchDto.getMatchName());
+        match.setUpdatedAt(LocalDateTime.now());
+
+        Match savedMatch = matchRepository.save(match);
+        return mapper.matchToDto(savedMatch);
+    }
+
+    public MatchDto deleteGoal(Long matchId, Long goalId) {
+        Match match = matchRepository.findActiveMatchesByMatchId(matchId)
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
+
+        Goal goalToDelete = match.getMatchGoals().stream()
+                .filter(goal -> goal.getGoalId().equals(goalId) && !goal.isDeleted())
+                .findFirst()
+                .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.GOAL_NOT_FOUND_IN_MATCH));
+
+        match.getMatchGoals().remove(goalToDelete);
+        matchRepository.save(match);
+
+        return mapper.matchToDto(match);
+    }
 }
