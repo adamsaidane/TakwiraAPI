@@ -37,7 +37,7 @@ public class MatchController {
         return ResponseEntity.ok(matchService.createMatch(createMatchDto));
     }
 
-    @PostMapping("/create/{matchId}")
+    @PutMapping("/create/{matchId}")
     public ResponseEntity<MatchDto> updateMatch(@PathVariable Long matchId, @RequestBody CreateMatchDto createMatchDto) {
         return ResponseEntity.ok(matchService.updateMatch(matchId, createMatchDto));
     }
