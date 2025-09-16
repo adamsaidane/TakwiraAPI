@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface MatchRepository extends JpaRepository<Match, Long> {
 
-    @Query("SELECT m FROM Match m WHERE m.deleted = false")
+    @Query("SELECT m FROM Match m WHERE m.deleted = false order by m.createdAt desc")
     List<Match> findAllActiveMatches();
 
     @Query("SELECT m FROM Match m WHERE m.matchId = :matchId AND m.deleted = false")
