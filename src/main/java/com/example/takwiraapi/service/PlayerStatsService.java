@@ -136,7 +136,7 @@ public class PlayerStatsService {
 
              if ((isTeam1 && team1Score > team2Score) || (!isTeam1 && team2Score > team1Score)) {
                 wins++;
-            } else {
+            } else if  ((!isTeam1 && team1Score > team2Score) || (isTeam1 && team2Score > team1Score)){
                 losses++;
             }
         }
