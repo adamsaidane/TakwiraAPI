@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +26,7 @@ public class PlayerStatsService {
         List<Player> players = playerRepository.findAll();
         return players.stream()
                 .map(this::calculatePlayerStats)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public PlayerStatsDto getPlayerStats(Long playerId) {
@@ -89,9 +88,9 @@ public class PlayerStatsService {
         int matchesLost = winLoss[1];
 
         // Calcul des ratios et moyennes
-        double winRatio = playerMatches.size() > 0 ? (double) matchesWon / playerMatches.size() : 0.0;
-        double avgGoalsPerMatch = playerMatches.size() > 0 ? (double) goalsScored / playerMatches.size() : 0.0;
-        double avgAssistsPerMatch = playerMatches.size() > 0 ? (double) assists / playerMatches.size() : 0.0;
+        double winRatio = !playerMatches.isEmpty() ? (double) matchesWon / playerMatches.size() : 0.0;
+        double avgGoalsPerMatch = !playerMatches.isEmpty() ? (double) goalsScored / playerMatches.size() : 0.0;
+        double avgAssistsPerMatch = !playerMatches.isEmpty() ? (double) assists / playerMatches.size() : 0.0;
 
         // Victoires consécutives actuelles
         int consecutiveWins = calculateConsecutiveWins(player.getPlayerId(), playerMatches);
@@ -115,7 +114,8 @@ public class PlayerStatsService {
     }
 
     private int[] calculateWinLossDrawStats(List<MatchPlayer> playerMatches) {
-        int wins = 0, losses = 0;
+        int wins = 0;
+        int losses = 0;
 
         for (MatchPlayer matchPlayer : playerMatches) {
             boolean isTeam1 = matchPlayer.getTeam() == Team.TEAM_1;
@@ -149,7 +149,7 @@ public class PlayerStatsService {
         List<Match> sortedMatches = playerMatches.stream()
                 .map(MatchPlayer::getMatch)
                 .sorted((m1, m2) -> m2.getMatchId().compareTo(m1.getMatchId()))
-                .collect(Collectors.toList());
+                .toList();
 
         int consecutive = 0;
 
