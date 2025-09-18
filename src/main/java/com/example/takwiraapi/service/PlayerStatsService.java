@@ -23,7 +23,7 @@ public class PlayerStatsService {
     private final MatchPlayerRepository matchPlayerRepository;
 
     public List<PlayerStatsDto> getAllPlayersStats() {
-        List<Player> players = playerRepository.findAll();
+        List<Player> players = playerRepository.findAllActivePlayers();
         return players.stream()
                 .map(this::calculatePlayerStats)
                 .toList();
