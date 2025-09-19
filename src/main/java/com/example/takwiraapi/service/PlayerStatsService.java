@@ -10,6 +10,7 @@ import com.example.takwiraapi.repository.MatchPlayerRepository;
 import com.example.takwiraapi.repository.MatchRepository;
 import com.example.takwiraapi.repository.PlayerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class PlayerStatsService {
     private final PlayerRepository playerRepository;
     private final MatchPlayerRepository matchPlayerRepository;
 
+    @Cacheable(value = "allPlayerStats")
     public List<PlayerStatsDto> getAllPlayersStats() {
         List<Player> players = playerRepository.findAllActivePlayers();
         return players.stream()
@@ -31,6 +33,7 @@ public class PlayerStatsService {
                 .toList();
     }
 
+    @Cacheable(value = "playerStats", key = "#playerId")
     public PlayerStatsDto getPlayerStats(Long playerId) {
         Player player = playerRepository.findActivePlayerById(playerId)
                 .orElseThrow(() -> new RuntimeException(ErrorConstants.PLAYER_NOT_FOUND));
