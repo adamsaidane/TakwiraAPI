@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class PlayerStatsService {
     private final MatchPlayerRepository matchPlayerRepository;
 
     public List<PlayerStatsDto> getAllPlayersStats() {
-        List<Player> players = playerRepository.findAll();
+        List<Player> players = playerRepository.findAllActivePlayers();
         return players.stream()
                 .map(this::calculatePlayerStats)
                 .toList();
@@ -36,54 +38,76 @@ public class PlayerStatsService {
     }
 
     private PlayerStatsDto calculatePlayerStats(Player player) {
-
         PlayerStatsDto stats = new PlayerStatsDto(player.getPlayerId(), player.getPlayerName());
 
         List<MatchPlayer> playerMatches = matchPlayerRepository.getPlayerMatches(player.getPlayerId());
-
-        List<Match> matches = playerMatches.stream()
-                .map(MatchPlayer::getMatch)
-                .toList();
 
         if (playerMatches.isEmpty()) {
             return stats;
         }
 
-        stats.setMatchesPlayed(playerMatches.size());
+        // Pré-charger toutes les données d'un coup au lieu de boucler sur les matchs
+        Map<Long, Match> matchMap = playerMatches.stream()
+                .map(MatchPlayer::getMatch)
+                .collect(Collectors.toMap(Match::getMatchId, match -> match));
 
-        // Calculs des buts et passes
-        int goalsScored = 0;
-        int assists = 0;
-        int maxGoalsInMatch = 0;
-        int maxAssistsInMatch = 0;
-        int hatTricks = 0;
-        int assistHatTricks = 0;
+        // Pré-calculer tous les buts par équipe pour tous les matchs d'un coup
+        Map<Long, Integer> team1GoalsMap = new java.util.HashMap<>();
+        Map<Long, Integer> team2GoalsMap = new java.util.HashMap<>();
+        Map<Long, Integer> playerGoalsMap = new java.util.HashMap<>();
+        Map<Long, Integer> playerAssistsMap = new java.util.HashMap<>();
 
-        for (Match match : matches) {
-            // Compter les buts dans ce match
-            int goalsInThisMatch = (int) match.getMatchGoals().stream()
+        // Pré-calculer tous les scores et statistiques d'un coup
+        for (MatchPlayer matchPlayer : playerMatches) {
+            Long matchId = matchPlayer.getMatch().getMatchId();
+            Match match = matchMap.get(matchId);
+
+            // Calculer les buts par équipe une seule fois par match
+            if (!team1GoalsMap.containsKey(matchId)) {
+                int team1Goals = (int) match.getMatchGoals().stream()
+                        .filter(goal -> Team.TEAM_1.equals(goal.getTeam()))
+                        .count();
+                int team2Goals = (int) match.getMatchGoals().stream()
+                        .filter(goal -> Team.TEAM_2.equals(goal.getTeam()))
+                        .count();
+
+                team1GoalsMap.put(matchId, team1Goals);
+                team2GoalsMap.put(matchId, team2Goals);
+            }
+
+            // Calculer les buts du joueur pour ce match
+            int goalsInMatch = (int) match.getMatchGoals().stream()
                     .filter(goal -> goal.getGoalScorer().getPlayerId().equals(player.getPlayerId()))
                     .count();
+            playerGoalsMap.put(matchId, goalsInMatch);
 
-            if (goalsInThisMatch >= 3) hatTricks++;
-
-            goalsScored += goalsInThisMatch;
-            maxGoalsInMatch = Math.max(maxGoalsInMatch, goalsInThisMatch);
-
-            // Compter les passes décisives
-            int assistsInThisMatch = (int) match.getMatchGoals().stream()
+            // Calculer les passes du joueur pour ce match
+            int assistsInMatch = (int) match.getMatchGoals().stream()
                     .filter(goal -> goal.getGoalAssist() != null &&
                             goal.getGoalAssist().getPlayerId().equals(player.getPlayerId()))
                     .count();
-
-            if (assistsInThisMatch >= 3) assistHatTricks++;
-
-            assists += assistsInThisMatch;
-            maxAssistsInMatch = Math.max(maxAssistsInMatch, assistsInThisMatch);
+            playerAssistsMap.put(matchId, assistsInMatch);
         }
 
-        // Calcul des victoires, défaites
-        int[] winLoss = calculateWinLossDrawStats(playerMatches);
+        // Calculs agrégés en une seule passe
+        int goalsScored = playerGoalsMap.values().stream().mapToInt(Integer::intValue).sum();
+        int assists = playerAssistsMap.values().stream().mapToInt(Integer::intValue).sum();
+        int maxGoalsInMatch = playerGoalsMap.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        int maxAssistsInMatch = playerAssistsMap.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        int hatTricks = (int) playerGoalsMap.values().stream().mapToInt(Integer::intValue).filter(g -> g >= 3).count();
+        int assistHatTricks = (int) playerAssistsMap.values().stream().mapToInt(Integer::intValue).filter(a -> a >= 3).count();
+
+        stats.setMatchesPlayed(playerMatches.size());
+        stats.setGoalsScored(goalsScored);
+        stats.setAssists(assists);
+        stats.setMaxGoalsInMatch(maxGoalsInMatch);
+        stats.setMaxAssistsInMatch(maxAssistsInMatch);
+        stats.setHatTricks(hatTricks);
+        stats.setAssistHatTricks(assistHatTricks);
+        stats.setTotalGoalContributions(goalsScored + assists);
+
+        // Calcul des victoires/défaites optimisé
+        int[] winLoss = calculateWinLossDrawStatsOptimized(playerMatches, team1GoalsMap, team2GoalsMap);
         int matchesWon = winLoss[0];
         int matchesLost = winLoss[1];
 
@@ -92,51 +116,40 @@ public class PlayerStatsService {
         double avgGoalsPerMatch = !playerMatches.isEmpty() ? (double) goalsScored / playerMatches.size() : 0.0;
         double avgAssistsPerMatch = !playerMatches.isEmpty() ? (double) assists / playerMatches.size() : 0.0;
 
-        // Victoires consécutives actuelles
-        int consecutiveWins = calculateConsecutiveWins(player.getPlayerId(), playerMatches);
-
-        // Assignation des valeurs
-        stats.setGoalsScored(goalsScored);
-        stats.setAssists(assists);
         stats.setMatchesWon(matchesWon);
         stats.setMatchesLost(matchesLost);
         stats.setWinRatio(Math.round(winRatio * 100.0) / 100.0);
         stats.setAvgGoalsPerMatch(Math.round(avgGoalsPerMatch * 100.0) / 100.0);
         stats.setAvgAssistsPerMatch(Math.round(avgAssistsPerMatch * 100.0) / 100.0);
-        stats.setTotalGoalContributions(goalsScored + assists);
+
+        // Victoires consécutives optimisées
+        int consecutiveWins = calculateConsecutiveWinsOptimized(playerMatches, team1GoalsMap, team2GoalsMap);
+
         stats.setConsecutiveWins(consecutiveWins);
-        stats.setMaxGoalsInMatch(maxGoalsInMatch);
-        stats.setMaxAssistsInMatch(maxAssistsInMatch);
-        stats.setHatTricks(hatTricks);
-        stats.setAssistHatTricks(assistHatTricks);
 
         return stats;
     }
 
-    private int[] calculateWinLossDrawStats(List<MatchPlayer> playerMatches) {
+    private int[] calculateWinLossDrawStatsOptimized(List<MatchPlayer> playerMatches,
+                                                     Map<Long, Integer> team1GoalsMap,
+                                                     Map<Long, Integer> team2GoalsMap) {
         int wins = 0;
         int losses = 0;
 
         for (MatchPlayer matchPlayer : playerMatches) {
+            Long matchId = matchPlayer.getMatch().getMatchId();
             boolean isTeam1 = matchPlayer.getTeam() == Team.TEAM_1;
 
-            Match match = matchPlayer.getMatch();
-
-            int team1Goals = (int) match.getMatchGoals().stream()
-                    .filter(goal -> Team.TEAM_1.equals(goal.getTeam()))
-                    .count();
-
-            int team2Goals = (int) match.getMatchGoals().stream()
-                    .filter(goal -> Team.TEAM_2.equals(goal.getTeam()))
-                    .count();
+            int team1Goals = team1GoalsMap.get(matchId);
+            int team2Goals = team2GoalsMap.get(matchId);
 
             // Système de score basé sur la différence
             int team1Score = Math.max(team1Goals - team2Goals, 0);
             int team2Score = Math.max(team2Goals - team1Goals, 0);
 
-             if ((isTeam1 && team1Score > team2Score) || (!isTeam1 && team2Score > team1Score)) {
+            if ((isTeam1 && team1Score > team2Score) || (!isTeam1 && team2Score > team1Score)) {
                 wins++;
-            } else if  ((!isTeam1 && team1Score > team2Score) || (isTeam1 && team2Score > team1Score)){
+            } else if ((!isTeam1 && team1Score > team2Score) || (isTeam1 && team2Score > team1Score)) {
                 losses++;
             }
         }
@@ -144,27 +157,22 @@ public class PlayerStatsService {
         return new int[]{wins, losses};
     }
 
-    private int calculateConsecutiveWins(Long playerId, List<MatchPlayer> playerMatches) {
+    private int calculateConsecutiveWinsOptimized(List<MatchPlayer> playerMatches,
+                                                  Map<Long, Integer> team1GoalsMap,
+                                                  Map<Long, Integer> team2GoalsMap) {
         // Trier les matchs par ID (plus récent en premier)
-        List<Match> sortedMatches = playerMatches.stream()
-                .map(MatchPlayer::getMatch)
-                .sorted((m1, m2) -> m2.getMatchId().compareTo(m1.getMatchId()))
+        List<MatchPlayer> sortedMatches = playerMatches.stream()
+                .sorted((mp1, mp2) -> mp2.getMatch().getMatchId().compareTo(mp1.getMatch().getMatchId()))
                 .toList();
 
         int consecutive = 0;
 
-        for (Match match : sortedMatches) {
-            boolean isTeam1 = match.getMatchPlayers().stream()
-                    .filter(mp -> mp.getTeam() == Team.TEAM_1)
-                    .anyMatch(p -> p.getPlayer().getPlayerId().equals(playerId));
+        for (MatchPlayer matchPlayer : sortedMatches) {
+            Long matchId = matchPlayer.getMatch().getMatchId();
+            boolean isTeam1 = matchPlayer.getTeam() == Team.TEAM_1;
 
-            int team1Goals = (int) match.getMatchGoals().stream()
-                    .filter(goal -> Team.TEAM_1.equals(goal.getTeam()))
-                    .count();
-
-            int team2Goals = (int) match.getMatchGoals().stream()
-                    .filter(goal -> Team.TEAM_2.equals(goal.getTeam()))
-                    .count();
+            int team1Goals = team1GoalsMap.get(matchId);
+            int team2Goals = team2GoalsMap.get(matchId);
 
             int team1Score = Math.max(team1Goals - team2Goals, 0);
             int team2Score = Math.max(team2Goals - team1Goals, 0);
