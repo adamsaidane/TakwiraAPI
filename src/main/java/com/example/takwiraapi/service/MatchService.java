@@ -116,7 +116,7 @@ public class MatchService {
                 MatchPlayer mp = new MatchPlayer();
                 mp.setMatch(match);
                 mp.setPlayer(player);
-                mp.setTeam(team2.contains(player) ? Team.TEAM_1 : Team.TEAM_2);
+                mp.setTeam(team1.contains(player) ? Team.TEAM_1 : Team.TEAM_2);
                 match.getMatchPlayers().add(mp);
             }
         });
