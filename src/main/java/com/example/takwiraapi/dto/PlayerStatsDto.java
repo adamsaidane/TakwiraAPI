@@ -34,11 +34,15 @@ public class PlayerStatsDto {
 
     private Double avgAssistsPerMatch;
 
+    private Double avgGoalContributionsPerMatch;
+
     private Integer consecutiveWins;
 
     private Integer maxGoalsInMatch;
 
     private Integer maxAssistsInMatch;
+
+    private Integer maxGoalContributionsInMatch;
 
     public PlayerStatsDto(Long playerId, String playerName) {
         this.playerId = playerId;
@@ -53,9 +57,11 @@ public class PlayerStatsDto {
         this.winRatio = 0.0;
         this.avgGoalsPerMatch = 0.0;
         this.avgAssistsPerMatch = 0.0;
+        this.avgGoalContributionsPerMatch = 0.0;
         this.totalGoalContributions = 0;
         this.consecutiveWins = 0;
         this.maxGoalsInMatch = 0;
         this.maxAssistsInMatch = 0;
+        this.maxGoalContributionsInMatch = 0;
     }
 }

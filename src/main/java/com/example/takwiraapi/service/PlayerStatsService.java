@@ -59,6 +59,7 @@ public class PlayerStatsService {
         Map<Long, Integer> team2GoalsMap = new java.util.HashMap<>();
         Map<Long, Integer> playerGoalsMap = new java.util.HashMap<>();
         Map<Long, Integer> playerAssistsMap = new java.util.HashMap<>();
+        Map<Long, Integer> playerContributionsMap = new java.util.HashMap<>();
 
         // Pré-calculer tous les scores et statistiques d'un coup
         for (MatchPlayer matchPlayer : playerMatches) {
@@ -90,6 +91,9 @@ public class PlayerStatsService {
                             goal.getGoalAssist().getPlayerId().equals(player.getPlayerId()))
                     .count();
             playerAssistsMap.put(matchId, assistsInMatch);
+
+            int contributionsInMatch = goalsInMatch + assistsInMatch;
+            playerContributionsMap.put(matchId, contributionsInMatch);
         }
 
         // Calculs agrégés en une seule passe
@@ -97,6 +101,7 @@ public class PlayerStatsService {
         int assists = playerAssistsMap.values().stream().mapToInt(Integer::intValue).sum();
         int maxGoalsInMatch = playerGoalsMap.values().stream().mapToInt(Integer::intValue).max().orElse(0);
         int maxAssistsInMatch = playerAssistsMap.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        int maxGoalContributionsInMatch = playerContributionsMap.values().stream().mapToInt(Integer::intValue).max().orElse(0);
         int hatTricks = (int) playerGoalsMap.values().stream().mapToInt(Integer::intValue).filter(g -> g >= 3).count();
         int assistHatTricks = (int) playerAssistsMap.values().stream().mapToInt(Integer::intValue).filter(a -> a >= 3).count();
 
@@ -105,6 +110,7 @@ public class PlayerStatsService {
         stats.setAssists(assists);
         stats.setMaxGoalsInMatch(maxGoalsInMatch);
         stats.setMaxAssistsInMatch(maxAssistsInMatch);
+        stats.setMaxGoalContributionsInMatch(maxGoalContributionsInMatch);
         stats.setHatTricks(hatTricks);
         stats.setAssistHatTricks(assistHatTricks);
         stats.setTotalGoalContributions(goalsScored + assists);
@@ -118,12 +124,14 @@ public class PlayerStatsService {
         double winRatio = !playerMatches.isEmpty() ? (double) matchesWon / playerMatches.size() : 0.0;
         double avgGoalsPerMatch = !playerMatches.isEmpty() ? (double) goalsScored / playerMatches.size() : 0.0;
         double avgAssistsPerMatch = !playerMatches.isEmpty() ? (double) assists / playerMatches.size() : 0.0;
+        double avgContributionsPerMatch = !playerMatches.isEmpty() ? (double) (assists + goalsScored) / playerMatches.size() : 0.0;
 
         stats.setMatchesWon(matchesWon);
         stats.setMatchesLost(matchesLost);
         stats.setWinRatio(Math.round(winRatio * 100.0) / 100.0);
         stats.setAvgGoalsPerMatch(Math.round(avgGoalsPerMatch * 100.0) / 100.0);
         stats.setAvgAssistsPerMatch(Math.round(avgAssistsPerMatch * 100.0) / 100.0);
+        stats.setAvgGoalContributionsPerMatch(Math.round(avgContributionsPerMatch * 100.0) / 100.0);
 
         // Victoires consécutives optimisées
         int consecutiveWins = calculateConsecutiveWinsOptimized(playerMatches, team1GoalsMap, team2GoalsMap);
