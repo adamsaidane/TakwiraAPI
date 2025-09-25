@@ -73,4 +73,51 @@ public class PlayerStatsController {
                 .toList();
         return ResponseEntity.ok(mostActive);
     }
+
+    @GetMapping("/top-contributors")
+    public ResponseEntity<List<PlayerStatsDto>> getTopContributors(@RequestParam(defaultValue = "10") int limit) {
+        List<PlayerStatsDto> allStats = playerStatsService.getAllPlayersStats();
+        List<PlayerStatsDto> topContributors = allStats.stream()
+                .filter(stat -> stat.getTotalGoalContributions() > 0)
+                .sorted((s1, s2) -> s2.getTotalGoalContributions().compareTo(s1.getTotalGoalContributions()))
+                .limit(limit)
+                .toList();
+        return ResponseEntity.ok(topContributors);
+    }
+
+    @GetMapping("/best-goal-average")
+    public ResponseEntity<List<PlayerStatsDto>> getBestGoalAverage(@RequestParam(defaultValue = "10") int limit,
+                                                                   @RequestParam(defaultValue = "3") int minMatches) {
+        List<PlayerStatsDto> allStats = playerStatsService.getAllPlayersStats();
+        List<PlayerStatsDto> bestGoalAverage = allStats.stream()
+                .filter(stat -> stat.getMatchesPlayed() >= minMatches)
+                .sorted((s1, s2) -> s2.getAvgGoalsPerMatch().compareTo(s1.getAvgGoalsPerMatch()))
+                .limit(limit)
+                .toList();
+        return ResponseEntity.ok(bestGoalAverage);
+    }
+
+    @GetMapping("/best-assist-average")
+    public ResponseEntity<List<PlayerStatsDto>> getBestAssistAverage(@RequestParam(defaultValue = "10") int limit,
+                                                                     @RequestParam(defaultValue = "3") int minMatches) {
+        List<PlayerStatsDto> allStats = playerStatsService.getAllPlayersStats();
+        List<PlayerStatsDto> bestAssistAverage = allStats.stream()
+                .filter(stat -> stat.getMatchesPlayed() >= minMatches)
+                .sorted((s1, s2) -> s2.getAvgAssistsPerMatch().compareTo(s1.getAvgAssistsPerMatch()))
+                .limit(limit)
+                .toList();
+        return ResponseEntity.ok(bestAssistAverage);
+    }
+
+    @GetMapping("/best-contribution-average")
+    public ResponseEntity<List<PlayerStatsDto>> getBestContributionAverage(@RequestParam(defaultValue = "10") int limit,
+                                                                           @RequestParam(defaultValue = "3") int minMatches) {
+        List<PlayerStatsDto> allStats = playerStatsService.getAllPlayersStats();
+        List<PlayerStatsDto> bestContributions = allStats.stream()
+                .filter(stat -> stat.getMatchesPlayed() >= minMatches)
+                .sorted((s1, s2) -> s2.getAvgGoalContributionsPerMatch().compareTo(s1.getAvgGoalContributionsPerMatch()))
+                .limit(limit)
+                .toList();
+        return ResponseEntity.ok(bestContributions);
+    }
 }
