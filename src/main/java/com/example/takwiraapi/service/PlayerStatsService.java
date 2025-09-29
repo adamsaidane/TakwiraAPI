@@ -134,9 +134,11 @@ public class PlayerStatsService {
         stats.setAvgGoalContributionsPerMatch(Math.round(avgContributionsPerMatch * 100.0) / 100.0);
 
         // Victoires consécutives optimisées
-        int consecutiveWins = calculateConsecutiveWinsOptimized(playerMatches, team1GoalsMap, team2GoalsMap);
+        int[] streak = calculateConsecutiveWinsOptimized(playerMatches, team1GoalsMap, team2GoalsMap);
 
-        stats.setConsecutiveWins(consecutiveWins);
+        stats.setConsecutiveWins(streak[0]);
+        stats.setLongestWinStreak(streak[1]);
+        stats.setLongestLoseStreak(streak[2]);
 
         return stats;
     }
@@ -168,7 +170,7 @@ public class PlayerStatsService {
         return new int[]{wins, losses};
     }
 
-    private int calculateConsecutiveWinsOptimized(List<MatchPlayer> playerMatches,
+    private int[] calculateConsecutiveWinsOptimized(List<MatchPlayer> playerMatches,
                                                   Map<Long, Integer> team1GoalsMap,
                                                   Map<Long, Integer> team2GoalsMap) {
         // Trier les matchs par ID (plus récent en premier)
@@ -176,7 +178,11 @@ public class PlayerStatsService {
                 .sorted((mp1, mp2) -> mp2.getMatch().getMatchId().compareTo(mp1.getMatch().getMatchId()))
                 .toList();
 
-        int consecutive = 0;
+        int currentWinStreak = 0;
+        int longestWinStreak = 0;
+
+        int currentLoseStreak = 0;
+        int longestLoseStreak = 0;
 
         for (MatchPlayer matchPlayer : sortedMatches) {
             Long matchId = matchPlayer.getMatch().getMatchId();
@@ -185,18 +191,24 @@ public class PlayerStatsService {
             int team1Goals = team1GoalsMap.get(matchId);
             int team2Goals = team2GoalsMap.get(matchId);
 
-            int team1Score = Math.max(team1Goals - team2Goals, 0);
-            int team2Score = Math.max(team2Goals - team1Goals, 0);
-
-            boolean hasWon = (isTeam1 && team1Score > team2Score) || (!isTeam1 && team2Score > team1Score);
+            boolean hasWon = (isTeam1 && team1Goals > team2Goals) || (!isTeam1 && team2Goals > team1Goals);
+            boolean hasLost = (isTeam1 && team1Goals < team2Goals) || (!isTeam1 && team2Goals < team1Goals);
 
             if (hasWon) {
-                consecutive++;
+                currentWinStreak++;
+                longestWinStreak = Math.max(longestWinStreak, currentWinStreak);
+                currentLoseStreak = 0; // reset lose streak
+            } else if (hasLost) {
+                currentLoseStreak++;
+                longestLoseStreak = Math.max(longestLoseStreak, currentLoseStreak);
+                currentWinStreak = 0; // reset win streak
             } else {
-                break;
+                // Match nul → reset les deux
+                currentWinStreak = 0;
+                currentLoseStreak = 0;
             }
         }
 
-        return consecutive;
+        return new int[]{currentWinStreak, longestWinStreak, longestLoseStreak};
     }
 }
