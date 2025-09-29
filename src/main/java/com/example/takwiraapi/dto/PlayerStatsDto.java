@@ -38,6 +38,10 @@ public class PlayerStatsDto {
 
     private Integer consecutiveWins;
 
+    private Integer longestWinStreak;
+
+    private  Integer longestLoseStreak;
+
     private Integer maxGoalsInMatch;
 
     private Integer maxAssistsInMatch;
@@ -60,6 +64,8 @@ public class PlayerStatsDto {
         this.avgGoalContributionsPerMatch = 0.0;
         this.totalGoalContributions = 0;
         this.consecutiveWins = 0;
+        this.longestWinStreak = 0;
+        this.longestLoseStreak = 0;
         this.maxGoalsInMatch = 0;
         this.maxAssistsInMatch = 0;
         this.maxGoalContributionsInMatch = 0;
