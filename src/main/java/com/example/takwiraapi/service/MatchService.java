@@ -11,6 +11,7 @@ import com.example.takwiraapi.repository.MatchRepository;
 import com.example.takwiraapi.repository.PlayerRepository;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.query.sqm.produce.function.FunctionArgumentException;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -51,6 +52,7 @@ public class MatchService {
         return mapper.matchToDto(savedMatch);
     }
 
+    @CacheEvict(value = {"playerStats", "allPlayerStats"}, allEntries = true)
     public MatchDto addPlayers(Long matchId, AddPlayersToMatchDto addPlayersToMatchDto) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
@@ -114,7 +116,7 @@ public class MatchService {
                 MatchPlayer mp = new MatchPlayer();
                 mp.setMatch(match);
                 mp.setPlayer(player);
-                mp.setTeam(team2.contains(player) ? Team.TEAM_1 : Team.TEAM_2);
+                mp.setTeam(team1.contains(player) ? Team.TEAM_1 : Team.TEAM_2);
                 match.getMatchPlayers().add(mp);
             }
         });
@@ -122,6 +124,7 @@ public class MatchService {
         return mapper.matchToDto(matchRepository.save(match));
     }
 
+    @CacheEvict(value = {"playerStats", "allPlayerStats"}, allEntries = true)
     public MatchDto addGoals(Long matchId, AddGoalsToMatchDto addGoalsToMatchDto) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
@@ -172,6 +175,7 @@ public class MatchService {
         return mapper.matchToDto(matchRepository.save(match));
     }
 
+    @CacheEvict(value = {"playerStats", "allPlayerStats"}, allEntries = true)
     public void deleteMatch(Long matchId) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
@@ -199,6 +203,7 @@ public class MatchService {
         return mapper.matchToDto(savedMatch);
     }
 
+    @CacheEvict(value = {"playerStats", "allPlayerStats"}, allEntries = true)
     public MatchDto deleteGoal(Long matchId, Long goalId) {
         Match match = matchRepository.findActiveMatchesByMatchId(matchId)
                 .orElseThrow(() -> new FunctionArgumentException(ErrorConstants.MATCH_NOT_FOUND));
