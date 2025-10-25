@@ -173,10 +173,6 @@ public class PlayerStatsService {
     private int[] calculateConsecutiveWinsOptimized(List<MatchPlayer> playerMatches,
                                                   Map<Long, Integer> team1GoalsMap,
                                                   Map<Long, Integer> team2GoalsMap) {
-        // Trier les matchs par ID (plus récent en premier)
-        List<MatchPlayer> sortedMatches = playerMatches.stream()
-                .sorted((mp1, mp2) -> mp2.getMatch().getMatchId().compareTo(mp1.getMatch().getMatchId()))
-                .toList();
 
         int currentWinStreak = 0;
         int longestWinStreak = 0;
@@ -184,7 +180,7 @@ public class PlayerStatsService {
         int currentLoseStreak = 0;
         int longestLoseStreak = 0;
 
-        for (MatchPlayer matchPlayer : sortedMatches) {
+        for (MatchPlayer matchPlayer : playerMatches) {
             Long matchId = matchPlayer.getMatch().getMatchId();
             boolean isTeam1 = matchPlayer.getTeam() == Team.TEAM_1;
 
